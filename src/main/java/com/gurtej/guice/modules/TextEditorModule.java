@@ -1,11 +1,15 @@
 package com.gurtej.guice.modules;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Key;
+import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.MapBinder;
+import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 import com.gurtej.guice.SpellChecker;
 import com.gurtej.guice.SpellCheckerImpl;
+import com.gurtej.guice.TextEditor;
 import com.gurtej.guice.WinWordSpellCheckerImpl;
 
 import java.util.Arrays;
@@ -17,24 +21,43 @@ public class TextEditorModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(SpellChecker.class).to(SpellCheckerImpl.class);
 
         /**
-         * correction for 'requirement for injection using guice' step:
-         * The program was giving an error at that step because:
-         * {@link SpellCheckerImpl} has dependency on {@link Integer} class and Guice couldn't construct an object
-         * of Integer class as it neither has a zero-args constructor nor a constructor annotated with @Inject
-         *
-         * Here we'll provide the necessary binding and to do so, we'll use annotation to bind only those Integers
-         * with the specified annotation
-         *
-         * Also, note that the chained binding to WinWordSpellCheckerImpl is removed here so that SpellCheckerImpl
-         * is injected when SpellChecker is required.
+         * {@link Multibinder} and {@link MapBinder} are quite similar as both of them are used to inject a collection
+         * of elements. The only diff. is that Multibinder is used to inject a Set of elements whereas MapBinder
+         * is used to inject a Map.
          */
-        bind(Integer.class).annotatedWith(Names.named("X")).toInstance(963);
+        Multibinder<TextEditor> textEditorMultibinder = Multibinder.newSetBinder(binder(), TextEditor.class);
 
-        // can chain bindings:
-//        bind(SpellCheckerImpl.class).to(WinWordSpellCheckerImpl.class);
+        /**
+         * demonstrates use of {@link Key} and {@link PrivateModule}
+         */
+        for (int i = 0; i < 3; i++) {
+            Key<TextEditor> textEditorKey = Key.get(TextEditor.class, Names.named(String.valueOf(i)));
+
+            int finalI = i;
+            install(new PrivateModule() {
+                @Override
+                protected void configure() {
+                    if (finalI % 2 == 0) {
+                        bind(SpellChecker.class).to(SpellCheckerImpl.class);
+                        bind(Integer.class).annotatedWith(Names.named("X")).toInstance(finalI);
+                    } else {
+                        bind(SpellChecker.class).to(WinWordSpellCheckerImpl.class);
+                    }
+                    bind(textEditorKey).to(TextEditor.class);
+                    expose(textEditorKey);
+                }
+            });
+
+            textEditorMultibinder.addBinding().to(textEditorKey);
+        }
+
+        TextEditor textEditorInstance = new TextEditor(
+                new SpellCheckerImpl(10052019),
+                new HashMap<>());
+        textEditorMultibinder.addBinding().toInstance(textEditorInstance);
+
 
         // can install another guice module inside a guice module
         install(new MapBinderModule());
