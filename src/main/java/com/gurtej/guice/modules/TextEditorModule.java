@@ -1,7 +1,7 @@
 package com.gurtej.guice.modules;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.TypeLiteral;
+import com.google.inject.Provides;
 import com.google.inject.multibindings.MapBinder;
 import com.gurtej.guice.SpellChecker;
 import com.gurtej.guice.SpellCheckerImpl;
@@ -31,11 +31,10 @@ public class TextEditorModule extends AbstractModule {
         MapBinder<Integer, String> mapBinder = MapBinder.newMapBinder(binder(), Integer.class, String.class);
         mapBinder.addBinding(1).toInstance("One");
         mapBinder.addBinding(3).toInstance("Three");
-
-        bind(new TypeLiteral<Map<Integer, List<Integer>>>() {}).toInstance(getMap());
     }
 
-    private Map<Integer, List<Integer>> getMap() {
+    @Provides
+    Map<Integer, List<Integer>> getMap() {
         Map<Integer, List<Integer>> map = new HashMap<>();
         map.put(237, Arrays.asList(2, 3, 7));
         map.put(491, Arrays.asList(4, 9, 1));
