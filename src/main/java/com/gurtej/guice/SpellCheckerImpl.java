@@ -2,10 +2,12 @@ package com.gurtej.guice;
 
 import com.google.inject.Inject;
 
+import javax.inject.Named;
+
 public class SpellCheckerImpl implements SpellChecker {
 
     @Inject
-    public SpellCheckerImpl(Integer x) {
+    public SpellCheckerImpl(@Named("X") Integer x) {
         System.out.println(x);
     }
 
