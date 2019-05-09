@@ -1,0 +1,16 @@
+plugins {
+    id 'java'
+}
+
+group 'com.gurtej'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile "com.google.inject:guice:4.2.0"
+}
